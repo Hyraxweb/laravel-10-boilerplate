@@ -1,2 +1,2 @@
 # laravel-10-boilerplate
-Laravel 10 Boilerplate 
+Laravel 10 Boilerplate

@@ -1,0 +1,56 @@
+version: "3"
+services:
+    www:
+        build: .
+        ports:
+            - "8001:80"
+        volumes:
+            - ./:/var/www/html
+            - ./docker/php/conf.d/error_reporting.ini:/usr/local/etc/php/conf.d/error_reporting.ini
+        links:
+            - db
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+    db:
+        image: mysql
+        ports:
+            - "3307:3306"
+        environment:
+            MYSQL_DATABASE: partener_portal
+            MYSQL_ROOT_PASSWORD: test
+        command: mysqld --default-authentication-plugin=mysql_native_password
+        volumes:
+            - ./dump:/docker-entrypoint-initdb.d
+            - persistent:/var/lib/mysql
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        depends_on:
+            - db
+        links:
+            - db:db
+        ports:
+            - 8000:80
+        environment:
+            MYSQL_USER: root
+            MYSQL_PASSWORD: test
+            MYSQL_ROOT_PASSWORD: test
+            PMA_HOST: db
+            PMA_PORT: 3306
+            UPLOAD_LIMIT: 2048M
+            MAX_EXECUTION_TIME: 30000
+    npm_admin:
+        build:
+            context: ./docker/node
+            dockerfile: Dockerfile
+        volumes:
+            - ./:/var/www/html
+        tty: true
+    mailhog_laravel_admin:
+        image: mailhog/mailhog:latest
+        container_name: mailhog_laravel_admin
+        ports:
+            - 1025:1025
+            - 8025:8025
+volumes:
+    persistent:
+        driver: local
